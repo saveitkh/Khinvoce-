@@ -62,6 +62,32 @@ const phoneToEmail = (digits: string) => `${digits}@khinvoice.app`;
 
 type Screen = 'Install' | 'SignIn' | 'SignUp' | 'Home' | 'Finance' | 'InvoiceOverview' | 'Invoice' | 'Stock' | 'Account' | 'Report' | 'Customer' | 'Category' | 'CustomerDebt' | 'SupplierDebt';
 
+// The Telegram bot opens this app with ?screen=invoice (etc.) so a tap on
+// "🧾 Create invoice" or "📊 Report" lands straight on that screen instead
+// of always on Home -- see webAppUrl()/showAppScreen() in the bot's
+// src/khInvoice.js. Read once at sign-in time only: a deep link should pick
+// where the FIRST screen after opening the app is, not hijack navigation
+// once someone is already using it.
+const DEEP_LINK_SCREENS: Partial<Record<string, Screen>> = {
+  invoice: 'Invoice',
+  report: 'Report',
+  stock: 'Stock',
+  customer: 'Customer',
+  category: 'Category',
+  customerdebt: 'CustomerDebt',
+  supplierdebt: 'SupplierDebt',
+  account: 'Account',
+  finance: 'Finance',
+};
+function deepLinkScreen(): Screen | null {
+  try {
+    const requested = new URLSearchParams(window.location.search).get('screen');
+    return requested ? DEEP_LINK_SCREENS[requested.toLowerCase()] ?? null : null;
+  } catch {
+    return null;
+  }
+}
+
 interface Profile {
   id: string;
   business_name: string | null;
@@ -578,7 +604,7 @@ export default function App() {
         const p = await loadProfile(session.user.id);
         if (p) {
           setProfile(p);
-          setCurrentScreen('Home');
+          setCurrentScreen(deepLinkScreen() ?? 'Home');
         }
       }
       setLoading(false);
@@ -631,7 +657,7 @@ export default function App() {
     }
 
     setProfile(p);
-    setCurrentScreen('Home');
+    setCurrentScreen(deepLinkScreen() ?? 'Home');
   };
 
   const handleSignUpSubmit = async () => {

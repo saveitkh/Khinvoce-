@@ -4,7 +4,8 @@
 // (those change every deploy, so we cache at runtime instead).
 
 const CACHE_NAME = 'kh-invoice-v1';
-const APP_SHELL = ['/', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png'];
+// Relative to this file, so the app works both at / and under a sub-path.
+const APP_SHELL = ['./', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
